@@ -25,7 +25,6 @@ namespace ServiceMonitor
 
             MainWindow = new MainWindow();
             MainWindow.Hide();
-            Notifier.Show("Service A is down", ServiceStatus.NotAvailable);
         }
 
         // Обработчик "Открыть"

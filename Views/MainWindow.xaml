@@ -8,7 +8,7 @@
                  Title="Service Monitor"
                  Width="800"
                  Height="600"
-                 MinWidth="600"
+                 MinWidth="700"
                  MinHeight="400" 
                  GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
                  ResizeMode="CanResizeWithGrip"
@@ -166,27 +166,34 @@
                                         <!-- Редактируемая часть -->
                                         <Grid Margin="0,12,0,0" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="9*" MinWidth="300"/>
-                                            <ColumnDefinition Width="2*" MinWidth="70"/>
+                                            <ColumnDefinition Width="3*" MinWidth="200"/>
+                                            <ColumnDefinition Width="7*" MinWidth="300"/>
+                                            <ColumnDefinition Width="*" MinWidth="70"/>
                                             <ColumnDefinition Width="auto" MinWidth="20"/>
                                             <ColumnDefinition Width="1.5*" MinWidth="80"/>
                                         </Grid.ColumnDefinitions>
 
                                             <!-- URL -->
                                             <StackPanel Grid.Column="0" Margin="6,0">
-                                                <TextBlock Text="URL" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Name" FontWeight="SemiBold"/>
+                                            <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+
+                                        <!-- Name -->
+                                        <StackPanel Grid.Column="1" Margin="6,0">
+                                            <TextBlock Text="URL" FontWeight="SemiBold"/>
                                             <TextBox Text="{Binding Url, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
                                         <!-- Type -->
-                                            <StackPanel Grid.Column="1" Margin="6,0">
+                                            <StackPanel Grid.Column="2" Margin="6,0">
                                                 <TextBlock Text="Type" FontWeight="SemiBold"/>
                                                 <ComboBox SelectedItem="{Binding Type, Mode=TwoWay}"
                       ItemsSource="{x:Static models:ServiceTypeValues.All}" />
                                             </StackPanel>
 
                                         <!-- TEST Button -->
-                                        <StackPanel Grid.Column="2" Margin="6,0" VerticalAlignment="Bottom">
+                                        <StackPanel Grid.Column="3" Margin="6,0" VerticalAlignment="Bottom">
                                             <!-- отступ под TextBlock -->
                                             <Button Style="{StaticResource IconButtonStyle}"
                                                 ToolTip="Test URL"
@@ -197,7 +204,7 @@
 
                                         </StackPanel>
                                             <!-- Interval -->
-                                            <StackPanel Grid.Column="3" Margin="6,0">
+                                            <StackPanel Grid.Column="4" Margin="6,0">
                                                 <TextBlock Text="Interval (ms)" FontWeight="SemiBold"/>
                                             <TextBox Text="{Binding UpdatePeriod, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
