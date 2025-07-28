@@ -1,4 +1,7 @@
 ﻿using Hardcodet.Wpf.TaskbarNotification;
+using Notifications.Wpf;
+using ServiceMonitor.Models;
+using ServiceMonitor.Utils;
 using ServiceMonitor.Views;
 using System.Configuration;
 using System.Data;
@@ -11,6 +14,7 @@ namespace ServiceMonitor
     /// </summary>
     public partial class App : Application
     {
+        public static NotificationManager NotificationManager { get; } = new NotificationManager();
         private TaskbarIcon? _trayIcon;
 
         protected override void OnStartup(StartupEventArgs e)
@@ -21,6 +25,7 @@ namespace ServiceMonitor
 
             MainWindow = new MainWindow();
             MainWindow.Hide();
+            Notifier.Show("Service A is down", ServiceStatus.NotAvailable);
         }
 
         // Обработчик "Открыть"

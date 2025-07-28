@@ -27,17 +27,26 @@ namespace ServiceMonitor.Views
 
         private void ExportServiceList(object sender, RoutedEventArgs e)
         {
-            // Launch the GitHub site...
+            if(DataContext is MainViewModel vm)
+            {
+                vm.SaveToFile();
+            }
         }
 
         private void ImportServiceList(object sender, RoutedEventArgs e)
         {
-            // deploy some CupCakes...
+            if(DataContext is MainViewModel vm)
+            {
+                vm.LoadFromFile();
+            }
         }
 
         private void AddService(object sender, RoutedEventArgs e)
         {
-            // deploy some CupCakes...
+            if(DataContext is MainViewModel vm)
+            {
+                vm.AddNewService();
+            }
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
