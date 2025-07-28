@@ -15,6 +15,16 @@ namespace ServiceMonitor.Views
             DataContext = new MainViewModel();
         }
 
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+
+            if(WindowState == WindowState.Minimized)
+            {
+                Hide();
+            }
+        }
+
         private void ExportServiceList(object sender, RoutedEventArgs e)
         {
             // Launch the GitHub site...
@@ -29,5 +39,12 @@ namespace ServiceMonitor.Views
         {
             // deploy some CupCakes...
         }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            this.Hide();
+        }
+
     }
 }
