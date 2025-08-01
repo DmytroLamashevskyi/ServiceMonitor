@@ -10,7 +10,7 @@ jobs:
     runs-on: windows-latest
     env:
       Solution_Name: 'ServiceMonitor.sln'
-      Project_Path: 'ServiceMonitor/ServiceMonitor.csproj'
+      Project_Path: 'ServiceMonitor.csproj'
       Publish_Dir: './publish'
       Zip_File: 'ServiceMonitor.zip'
 
