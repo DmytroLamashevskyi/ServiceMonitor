@@ -1,10 +1,9 @@
-﻿using ServiceMonitor.Core;
+﻿using Microsoft.Win32;
+using ServiceMonitor.Core;
 using ServiceMonitor.Models;
 using ServiceMonitor.Utils;
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 
@@ -12,106 +11,198 @@ namespace ServiceMonitor.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
-        private readonly ServiceCheckerEngine _engine = new();
+        private const string _stateFileName = "ServiceState.json";
 
-        private const string _configPath = "config.json";
-        public ObservableCollection<ServiceModel> Services { get; set; } = new();
-        public ICommand EditCommand => new RelayCommand<ServiceModel>(s => s.IsEditing = true);
-        public ICommand SaveCommand => new RelayCommand<ServiceModel>(s => {
+        private readonly ServiceRepository _repository;
+        private readonly ServiceCheckerEngine _engine;
+        private readonly FileStorageService _fileStorage;
 
-            s.IsEditing = false;
-            _engine.StartMonitoring(s, OnServiceChecked);
-        });
+        public ObservableCollection<ServiceModel> Services => _repository.Services;
 
-        public ICommand DeleteCommand => new RelayCommand<ServiceModel>(s => {
-            _engine.StopMonitoring(s); 
-            Services.Remove(s);
-        });
+        private ICommand? _editCommand;
+        private ICommand? _saveCommand;
+        private ICommand? _deleteCommand;
 
-        public ICommand TestCommand => new RelayCommand<ServiceModel>(model =>
+        public ICommand EditCommand => _editCommand ??= new RelayCommand<ServiceModel>(service =>
         {
-            _ = MessageBox.Show($"Testing {model.Name} at {model.Url}", "Test Service");
+            if(service != null)
+                service.IsEditing = true;
         });
 
-        public MainViewModel()
+        public ICommand SaveCommand => _saveCommand ??= new RelayCommand<ServiceModel>(service =>
         {
+            if(service == null) return;
+
+            service.IsEditing = false;
+
+            if(service.IsActive)
+            {
+                _engine.StopMonitoring(service);
+                _engine.StartMonitoring(service);
+            }
+            else
+            {
+                _engine.StopMonitoring(service);
+            }
+        });
+
+        public ICommand DeleteCommand => _deleteCommand ??= new RelayCommand<ServiceModel>(service =>
+        {
+            if(service == null) return;
+
+            _engine.StopMonitoring(service);
+            _repository.Remove(service);
+        });
+
+        public MainViewModel(ServiceRepository repository, ServiceCheckerEngine engine, FileStorageService fileStorage)
+        {
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _engine = engine ?? throw new ArgumentNullException(nameof(engine));
+            _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
+
+            LoadState();
+
             foreach(var service in Services)
             {
                 if(service.IsActive)
-                {
-                    _engine.StartMonitoring(service, OnServiceChecked);
-                }
+                    _engine.StartMonitoring(service);
             }
         }
 
-        private void OnServiceChecked(ServiceModel model, ServiceCheckResult result)
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                if(model.Status != result.Status)
-                {
-                    model.LastStatusChange = result.CheckedAt;
-                    Notifier.Show(result.ServiceName ,result.Message, result.Status);
-                }
-
-                model.Status = result.Status;
-                model.Message = result.Message;
-            });
-        }
 
         public void AddNewService()
         {
-            Services.Add(new ServiceModel
+            var service = new ServiceModel
             {
                 Name = "New Service",
-                Url = "https://example.com/health",
+                Url = "http://localhost",
                 Type = ServiceType.Http,
-                UpdatePeriod = 10000,
-                IsActive = true,
-                IsEditing = true,
-                Status = ServiceStatus.Ok,
-                LastStatusChange = DateTime.Now,
-                Message = "Новый сервис добавлен"
-            });
+                UpdatePeriod = 5000,
+                IsActive = true
+            };
+
+            _repository.Add(service);
+            _engine.StartMonitoring(service);
         }
 
-        public void SaveToFile(string path = _configPath)
+        public void RemoveService(ServiceModel service)
+        {
+            if(service == null) return;
+
+            _engine.StopMonitoring(service);
+            _repository.Remove(service);
+        }
+
+        #region Saving & Loading JSON
+
+        public void SaveState()
         {
             try
             {
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                };
-
-                var json = JsonSerializer.Serialize(Services, options);
-                File.WriteAllText(path, json);
+                _fileStorage.SaveToFile(Services, _stateFileName);
             }
             catch(Exception ex)
             {
-                MessageBox.Show($"Ошибка при сохранении: {ex.Message}");
+                Console.WriteLine($"Error saving state: {ex.Message}");
             }
         }
 
-        public void LoadFromFile(string path = _configPath)
+        public void LoadState()
         {
             try
             {
-                if(!File.Exists(path)) return;
-
-                var json = File.ReadAllText(path);
-                var loadedServices = JsonSerializer.Deserialize<ObservableCollection<ServiceModel>>(json);
-
-                if(loadedServices != null)
+                var list = _fileStorage.LoadFromFile(_stateFileName);
+                if(list != null)
                 {
                     Services.Clear();
-                    foreach(var s in loadedServices)
+                    foreach(var s in list)
                         Services.Add(s);
                 }
             }
             catch(Exception ex)
             {
-                MessageBox.Show($"Ошибка при загрузке: {ex.Message}");
+                Console.WriteLine($"Error loading state: {ex.Message}");
+            }
+        }
+
+        public void SaveToFile(string filePath)
+        {
+            try
+            {
+                _fileStorage.SaveToFile(Services, filePath);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show($"Error saving to file: {ex.Message}");
+            }
+        }
+
+        public void LoadFromFile(string filePath)
+        {
+            try
+            {
+                var list = _fileStorage.LoadFromFile(filePath);
+                if(list != null)
+                {
+                    foreach(var s in Services)
+                        _engine.StopMonitoring(s);
+
+                    Services.Clear();
+
+                    foreach(var s in list)
+                    {
+                        Services.Add(s);
+                        if(s.IsActive)
+                            _engine.StartMonitoring(s);
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show($"Error loading from file: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        public void ExportServices()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
+                FileName = "ServiceList.json"
+            };
+
+            if(dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    SaveToFile(dialog.FileName);
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show($"Error saving to file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        public void ImportServices()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*"
+            };
+
+            if(dialog.ShowDialog() == true && System.IO.File.Exists(dialog.FileName))
+            {
+                try
+                {
+                    LoadFromFile(dialog.FileName);
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show($"Error loading from file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

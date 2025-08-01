@@ -1,0 +1,6 @@
+{
+  "LogFilePath": "logs/ServiceMonitor.log",
+  "MaxLogFileSizeMB": 5,
+  "MaxParallelChecks": 5,
+  "MinCheckIntervalMs": 700
+}

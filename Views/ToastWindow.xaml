@@ -1,7 +1,7 @@
 ﻿<mah:MetroWindow  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" x:Class="ServiceMonitor.Views.ToastNotificationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Width="340"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:iconPacks="clr-namespace:MahApps.Metro.IconPacks;assembly=MahApps.Metro.IconPacks.Material"
+                  Width="340"
         Height="100"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -38,14 +38,15 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4" Grid.Column="0">
-                        <Image Source="{Binding IconPath}" Width="18" Height="18" Margin="0,0,6,0"/>
-                        <TextBlock Text="{Binding Title}"
-                       FontWeight="Bold"
-                       FontSize="14"
-                       Foreground="Black"
-                       VerticalAlignment="Center"/>
-                    </StackPanel>
+                    <Grid Margin="0,0,0,4" Grid.Column="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <iconPacks:PackIconMaterial Grid.Column="0" Width="18" Height="18" Kind="{Binding IconKind}" Foreground="{Binding AccentColor}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Header}" FontWeight="Bold" FontSize="14" Foreground="Black" VerticalAlignment="Center" Margin="6,0,0,0" TextTrimming="CharacterEllipsis"/>
+                    </Grid>
 
                     <Button Grid.Column="1"
                 Content="✕"
@@ -62,11 +63,7 @@
                 Padding="0" />
                 </Grid>
 
-                <TextBlock Text="{Binding Message}"
-               FontSize="13"
-               TextWrapping="Wrap"
-               Foreground="Black"
-               Margin="0,4,0,0"/>
+                <TextBlock Text="{Binding Message}" FontSize="13" TextWrapping="Wrap" Foreground="Black" Margin="0,4,0,0"/>
             </StackPanel>
 
         </Grid>

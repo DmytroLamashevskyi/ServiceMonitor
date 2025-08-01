@@ -1,28 +1,55 @@
 ﻿using ServiceMonitor.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.NetworkInformation;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ServiceMonitor.Core
 {
-    public class PingChecker : IServiceCheckStrategy
+    /// <summary>
+    /// Service check strategy using ICMP Ping.
+    /// </summary>
+    public sealed class PingChecker : IServiceCheckStrategy
     {
+        /// <summary>
+        /// Checks service availability via ICMP Ping.
+        /// </summary>
         public async Task<ServiceCheckResult> CheckAsync(ServiceModel model)
         {
             try
             {
-                var uri = new Uri(model.Url);
+                if(string.IsNullOrWhiteSpace(model.Url))
+                {
+                    return new ServiceCheckResult
+                    {
+                        ServiceName = model.Name,
+                        Status = ServiceStatus.Error,
+                        Message = "Empty URL for Ping check"
+                    };
+                }
+
+                string host;
+                try
+                {
+                    host = new Uri(model.Url).Host;
+                }
+                catch
+                {
+                    // Fallback if user passed just hostname or IP without scheme
+                    host = model.Url;
+                }
+
                 using var ping = new Ping();
-                var reply = await ping.SendPingAsync(uri.Host, 3000);
+                var reply = await ping.SendPingAsync(host, 3000);
+
+                var status = reply.Status == IPStatus.Success
+                    ? ServiceStatus.Online
+                    : ServiceStatus.Offline;
 
                 return new ServiceCheckResult
-                {   
+                {
                     ServiceName = model.Name,
-                    Status = reply.Status == IPStatus.Success ? ServiceStatus.Ok : ServiceStatus.NotAvailable,
-                    Message = $"Ping {uri.Host} - {reply.Status} - {reply.RoundtripTime}ms"
+                    Status = status,
+                    Message = $"Ping {host} → {reply.Status} ({reply.RoundtripTime} ms)"
                 };
             }
             catch(Exception ex)
@@ -30,8 +57,8 @@ namespace ServiceMonitor.Core
                 return new ServiceCheckResult
                 {
                     ServiceName = model.Name,
-                    Status = ServiceStatus.Warning,
-                    Message = ex.Message
+                    Status = ServiceStatus.Error,
+                    Message = $"Ping failed: {ex.Message}"
                 };
             }
         }
