@@ -1,0 +1,49 @@
+name: Build ServiceMonitor WPF App
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        configuration: [Release]
+
+    env:
+      Solution_Name: 'ServiceMonitor.sln'  # Твой файл решения
+      Project_Path: 'ServiceMonitor/ServiceMonitor.csproj'  # Путь к основному проекту
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Build solution
+      run: dotnet build ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-restore
+
+    - name: Run tests
+      run: dotnet test ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-build --verbosity normal
+
+    - name: Publish application
+      run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --output ./publish /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true /p:PublishTrimmed=true
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ServiceMonitor-publish
+        path: ./publish/
