@@ -49,8 +49,8 @@ jobs:
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ github.ref_name }}
+        tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+        name: Release ${{ github.event.inputs.tag_name || github.ref_name }}
         body: Automated release from GitHub Actions
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
