@@ -18,32 +18,32 @@ jobs:
         configuration: [Release]
 
     env:
-      Solution_Name: 'ServiceMonitor.sln'  # Твой файл решения
-      Project_Path: 'ServiceMonitor/ServiceMonitor.csproj'  # Путь к основному проекту
+      Solution_Name: 'ServiceMonitor.sln'  # Файл решения
+      Project_Path: 'ServiceMonitor.csproj'  # Путь к проекту (корень)
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore ${{ env.Solution_Name }}
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.Solution_Name }}
 
-    - name: Build solution
-      run: dotnet build ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-restore
+      - name: Build solution
+        run: dotnet build ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-restore
 
-    - name: Run tests
-      run: dotnet test ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-build --verbosity normal
+      - name: Run tests
+        run: dotnet test ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-build --verbosity normal
 
-    - name: Publish application
-      run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --output ./publish /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true /p:PublishTrimmed=true
+      - name: Publish application
+        run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --output ./publish /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true /p:PublishTrimmed=true
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ServiceMonitor-publish
-        path: ./publish/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ServiceMonitor-publish
+          path: ./publish/
