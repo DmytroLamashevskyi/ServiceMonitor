@@ -61,5 +61,6 @@ jobs:
       with:
         tag_name: ${{ github.event.inputs.tag_name }}
         name: ServiceMonitor.zip
-        asset_path: ${{ env.Zip_File }}
+        files: ServiceMonitor.zip
         token: ${{ secrets.PAT_GITHUB_TOKEN }}
+
