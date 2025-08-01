@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'    # workflow запускается при пуше тега, например v1.0.0
   workflow_dispatch: 
+    inputs:
+      tag_name:
+        description: 'Tag to release'
+        required: true
+        default: 'v1.0.0'
   
 jobs:
   build:
