@@ -3,7 +3,7 @@ name: Build and Release ServiceMonitor
 on:
   push:
     tags:
-      - 'v*'    # Запуск при пуше тегов вида v1.0.0, v2.1 и т.д.
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag_name:
@@ -21,42 +21,42 @@ jobs:
       Zip_File: 'ServiceMonitor.zip'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore ${{ env.Solution_Name }}
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
 
-      - name: Build solution
-        run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore
+    - name: Build solution
+      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore
 
-      - name: Run tests
-        run: dotnet test ${{ env.Solution_Name }} --configuration Release --no-build --verbosity normal
+    - name: Run tests
+      run: dotnet test ${{ env.Solution_Name }} --configuration Release --no-build --verbosity normal
 
-      - name: Publish application
-        run: dotnet publish ${{ env.Project_Path }} --configuration Release --output ${{ env.Publish_Dir }} /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true /p:PublishTrimmed=false
+    - name: Publish application
+      run: dotnet publish ${{ env.Project_Path }} --configuration Release --output ${{ env.Publish_Dir }} /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true /p:PublishTrimmed=false
 
-      - name: Zip published files
-        run: powershell Compress-Archive -Path ${{ env.Publish_Dir }}\* -DestinationPath ${{ env.Zip_File }}
+    - name: Zip published files
+      run: powershell Compress-Archive -Path ${{ env.Publish_Dir }}\* -DestinationPath ${{ env.Zip_File }}
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') ? github.ref_name : github.event.inputs.tag_name }}
-          name: Release ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') ? github.ref_name : github.event.inputs.tag_name }}
-          body: Automated release from GitHub Actions
-          token: ${{ secrets.PAT_GITHUB_TOKEN }}
+    - name: Create GitHub Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.tag_name }}
+        name: Release ${{ github.event.inputs.tag_name }}
+        body: Automated release from GitHub Actions
+        token: ${{ secrets.PAT_GITHUB_TOKEN }}
 
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') ? github.ref_name : github.event.inputs.tag_name }}
-          name: ServiceMonitor.zip
-          asset_path: ${{ env.Zip_File }}
-          token: ${{ secrets.PAT_GITHUB_TOKEN }}
+    - name: Upload Release Asset
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.tag_name }}
+        name: ServiceMonitor.zip
+        asset_path: ${{ env.Zip_File }}
+        token: ${{ secrets.PAT_GITHUB_TOKEN }}
