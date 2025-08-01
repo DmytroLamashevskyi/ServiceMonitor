@@ -3,7 +3,7 @@ name: Build and Release ServiceMonitor
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # Запускается при пуше тега, например v1.0.0, v1.2.3 и т.п.
   workflow_dispatch:
     inputs:
       tag_name:
@@ -27,7 +27,7 @@ jobs:
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '9.0.x'
 
     - name: Restore dependencies
       run: dotnet restore ${{ env.Solution_Name }}
@@ -40,6 +40,9 @@ jobs:
 
     - name: Publish application
       run: dotnet publish ${{ env.Project_Path }} --configuration Release --output ${{ env.Publish_Dir }} /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true /p:PublishTrimmed=false
+
+    - name: List published files
+      run: dir ${{ env.Publish_Dir }}
 
     - name: Zip published files
       run: powershell Compress-Archive -Path ${{ env.Publish_Dir }}\* -DestinationPath ${{ env.Zip_File }}
