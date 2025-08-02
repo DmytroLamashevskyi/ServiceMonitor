@@ -35,8 +35,11 @@ namespace ServiceMonitor
 
             // Создаём репозиторий и файловый сервис
             _repository = new ServiceRepository();
-            var defaultFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ServiceState.json");
-            _fileStorage = new FileStorageService(defaultFilePath);
+            string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ServiceMonitor");
+            Directory.CreateDirectory(appDataPath);
+            var path = Path.Combine(appDataPath, "ServiceState.json");
+
+            _fileStorage = new FileStorageService(path);
 
             // Создаём движок мониторинга
             _engine = new ServiceCheckerEngine(logger, settings);

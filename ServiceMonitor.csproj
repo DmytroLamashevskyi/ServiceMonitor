@@ -6,9 +6,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+	  <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+	  <Version>1.0.4</Version>
+	  <VersionPrefix>v</VersionPrefix>
+
+
+	  <AssemblyVersion>1.0.4.0</AssemblyVersion>
+	  <FileVersion>1.0.4.0</FileVersion>
+	  <InformationalVersion>v1.0.4</InformationalVersion>
   </PropertyGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <None Remove="Assets\app.ico" />
     <None Remove="Assets\icon.png" />
   </ItemGroup>
@@ -22,7 +30,10 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.7" />
     <PackageReference Include="Notifications.Wpf" Version="0.1.1" />
   </ItemGroup>
-
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
   <ItemGroup>
     <Resource Include="Assets\app.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
